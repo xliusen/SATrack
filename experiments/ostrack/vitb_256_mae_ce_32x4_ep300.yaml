@@ -1,0 +1,88 @@
+DATA:
+  MAX_SAMPLE_INTERVAL: 400
+  MEAN:
+  - 0.485
+  - 0.456
+  - 0.406
+  SEARCH:
+    CENTER_JITTER: 4.5
+    FACTOR: 5.0
+    SCALE_JITTER: 0.5
+    SIZE: 384
+    NUMBER: 2
+  STD:
+  - 0.229
+  - 0.224
+  - 0.225
+  TEMPLATE:
+    CENTER_JITTER: 0
+#    FACTOR: [2.0,4.0]
+    FACTOR: [2.0]
+    SCALE_JITTER: 0
+    SIZE: 192
+    NUMBER: 3
+#    NUMBER: 1
+  TRAIN:
+    DATASETS_NAME:
+    - LASOT
+    - TNL2K     # Different annotation styles of language
+    - OTB99    # Different annotation styles of language
+    DATASETS_RATIO:
+    - 6
+    - 6
+    - 1
+    SAMPLE_PER_EPOCH: 60000
+  VAL:
+    DATASETS_NAME:
+    - GOT10K_votval
+    DATASETS_RATIO:
+    - 1
+    SAMPLE_PER_EPOCH: 10000
+MODEL:
+  PRETRAIN_FILE: "OSTrack_ep0050.pth.tar" #"mae_pretrain_vit_base.pth"
+  EXTRA_MERGER: False
+  RETURN_INTER: False
+  BACKBONE:
+    TYPE: vit_base_patch16_224_ce
+    STRIDE: 16
+    CE_LOC: [3, 6, 9]
+    CE_KEEP_RATIO: [0.7, 0.7, 0.7]
+    CE_TEMPLATE_RANGE: 'CTR_POINT'  # choose between ALL, CTR_POINT, CTR_REC, GT_BOX
+    ADD_CLS_TOKEN: True             # use track_query mechanism
+#    ADD_CLS_TOKEN: False             # use track_query mechanism
+    ATTN_TYPE: concat               # Choose from [concat, separate]
+  HEAD:
+    TYPE: CENTER
+    NUM_CHANNELS: 256
+TRAIN:
+  BBOX_TASK: True
+  BACKBONE_MULTIPLIER: 0.1
+  DROP_PATH_RATE: 0.1
+  CE_START_EPOCH: 15 # candidate elimination start epoch
+  CE_WARM_EPOCH: 5  # candidate elimination warm up epochc
+  BATCH_SIZE: 4   # 32 * 4 GPUs (All-in-One, RTX 3090) or 128 * 1 GPU (All-in-One, A6000), contrastive learning needs big batch size (@SimCLR, @MoCo)
+  EPOCH: 30
+  GIOU_WEIGHT: 2.0
+  L1_WEIGHT: 5.0
+  GRAD_CLIP_NORM: 0.1
+  LR: 00.00005
+  LR_DROP_EPOCH: 25
+  NUM_WORKER: 16
+  OPTIMIZER: ADAMW
+  PRINT_INTERVAL: 100
+  SCHEDULER:
+    TYPE: step
+    DECAY_RATE: 0.1
+  VAL_EPOCH_INTERVAL: 1000 # no val
+  WEIGHT_DECAY: 0.0001
+  AMP: False
+TEST:
+  EPOCH: 1
+  SEARCH_FACTOR: 5.0
+  SEARCH_SIZE: 384
+  TEMPLATE_FACTOR: [2.0]
+#  TEMPLATE_FACTOR: [2.0]
+  TEMPLATE_SIZE: 192
+#  TEMPLATE_NUMBER: 1
+  TEMPLATE_NUMBER: 3
+  MEMORY_THRESHOLD: 1000
